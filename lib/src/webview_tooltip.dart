@@ -57,7 +57,7 @@ class WebviewTooltip {
               width: textPainter.width + 16,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color.fromARGB(255, 0, 0, 0),
                 borderRadius: const BorderRadius.all(Radius.circular(4)),
                 boxShadow: [
                   BoxShadow(blurRadius: 2, color: Colors.black.withOpacity(.2))

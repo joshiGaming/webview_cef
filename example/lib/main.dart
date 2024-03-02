@@ -1,7 +1,12 @@
 import 'dart:async';
-
+import 'dart:convert';
+import 'dart:io';
+import 'package:markdown/markdown.dart' as md;
 import 'package:flutter/material.dart';
+import 'package:html/dom.dart' as dom;
 import 'package:webview_cef/webview_cef.dart';
+import 'package:html/parser.dart' as html;
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -21,129 +26,86 @@ class _MyAppState extends State<MyApp> {
   Map allCookies = {};
 
   @override
-  void initState() {
-    super.initState();
-    initPlatformState();
+  void dispose() {
+    _controller.dispose();
+
+    super.dispose();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String url = "https://flutter.dev/";
-    _textController.text = url;
-    await _controller.initialize();
-    await _controller.loadUrl(url);
-    _controller.setWebviewListener(WebviewEventsListener(
+
+  @override
+  void initState() {
+ 
+    super.initState();
+
+     //  initPlatformState();
+        _controller.setWebviewListener(WebviewEventsListener(
       onTitleChanged: (t) {
         setState(() {
           title = t;
         });
+        if(!(t == "Pixie" || t == "file:///Users/joshig/Documents/GitHub/webview_cef/example/lib/index.html")) {
+          print("not pixie: ${t}");
+        }
       },
       onUrlChanged: (url) {
+        print(url);
         _textController.text = url;
       },
     ));
+  }
 
-    // ignore: prefer_collection_literals
-    final Set<JavascriptChannel> jsChannels = [
-      JavascriptChannel(
-          name: 'Print',
-          onMessageReceived: (JavascriptMessage message) {
-            print(message.message);
-            _controller.sendJavaScriptChannelCallBack(
-                false,
-                "{'code':'200','message':'print succeed!'}",
-                message.callbackId,
-                message.frameId);
-          }),
-    ].toSet();
-    //normal JavaScriptChannels
-    await _controller.setJavaScriptChannels(jsChannels);
-    //also you can build your own jssdk by execute JavaScript code to CEF
-    await _controller.executeJavaScript("function abc(e){return 'abc:'+ e}");
-    _controller.evaluateJavascript("abc('test')").then((value) => print(value));
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-    setState(() {});
+  
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> initPlatformState() async {
+  
+    print("instance");
+    if(!_controller.value){
+          await _controller.initialize();
+    }
+   
+
+
+    
+
+
   }
 
   @override
   Widget build(BuildContext context) {
+    print("build");
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true),
+      
       home: Scaffold(
-          body: Column(
-        children: [
-          SizedBox(
-            height: 20,
-            child: Text(title),
-          ),
-          Row(
-            children: [
-              SizedBox(
-                height: 48,
-                child: MaterialButton(
-                  onPressed: () {
-                    _controller.reload();
-                  },
-                  child: const Icon(Icons.refresh),
-                ),
-              ),
-              SizedBox(
-                height: 48,
-                child: MaterialButton(
-                  onPressed: () {
-                    _controller.goBack();
-                  },
-                  child: const Icon(Icons.arrow_left),
-                ),
-              ),
-              SizedBox(
-                height: 48,
-                child: MaterialButton(
-                  onPressed: () {
-                    _controller.goForward();
-                  },
-                  child: const Icon(Icons.arrow_right),
-                ),
-              ),
-              SizedBox(
-                height: 48,
-                child: MaterialButton(
-                  onPressed: () {
-                    _controller.openDevTools();
-                  },
-                  child: const Icon(Icons.developer_mode),
-                ),
-              ),
-              Expanded(
-                child: TextField(
-                  controller: _textController,
-                  onSubmitted: (url) {
-                    _controller.loadUrl(url);
-                    _controller.visitAllCookies().then((value) {
-                      allCookies = Map.of(value);
-                      if (url == "baidu.com") {
-                        if (!allCookies.containsKey('.$url') ||
-                            !Map.of(allCookies['.$url']).containsKey('test')) {
-                          _controller.setCookie(url, 'test', 'test123');
-                        } else {
-                          _controller.deleteCookie(url, 'test');
-                        }
-                      }
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-          _controller.value
-              ? Expanded(child: WebView(_controller))
-              : const Text("not init"),
-        ],
-      )),
-    );
+    
+        floatingActionButton: FloatingActionButton(onPressed: (() async{
+        await _controller.loadUrl("file:///Users/joshig/Documents/GitHub/webview_cef/example/lib/index.html");
+            dom.Document docs = html.parse( await File("/Users/joshig/Documents/GitHub/webview_cef/example/lib/index.html").readAsString());
+
+        final res = await http.get(Uri.parse(
+        'https://api.modrinth.com/v2/project/BYN9yKrV'));
+    final hit = jsonDecode(utf8.decode(res.bodyBytes));
+
+  
+  docs.body!.innerHtml = md.markdownToHtml(hit["body"]);
+  //docs.head!.innerHtml = "";
+         File("/Users/joshig/Documents/GitHub/webview_cef/example/lib/index.html").writeAsStringSync(docs.outerHtml);
+         _controller.reload();
+         print("relaoded");
+         setState(() {
+           
+         });
+        })),
+          body: FutureBuilder(future: initPlatformState(), builder: ((context, snapshot) {
+            return  _controller.value
+              ?Container(color: Color.fromARGB(255, 30, 30, 30), child: Container(clipBehavior: Clip.antiAlias, margin: EdgeInsets.all(150),decoration: BoxDecoration(border: Border.all(color: Color.fromARGB(78, 137, 137, 137)), color: Color.fromARGB(255, 30, 30, 30), borderRadius: BorderRadius.circular(18)), child:  WebView(_controller)))
+              : const Text("not init");
+          })
+   
+      
+    )));
   }
 }

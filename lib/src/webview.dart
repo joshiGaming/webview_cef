@@ -396,7 +396,7 @@ class WebViewState extends State<WebView> {
           onPointerSignal: (signal) {
             if (signal is PointerScrollEvent) {
               _controller._setScrollDelta(signal.localPosition,
-                  signal.scrollDelta.dx.round(), signal.scrollDelta.dy.round());
+                 signal.scrollDelta.dx.round(), signal.scrollDelta.dy.round());
             }
           },
           onPointerPanZoomUpdate: (event) {
