@@ -117,7 +117,11 @@ bool WebviewHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser,
                                 const CefString& target_url,
                                 WindowOpenDisposition target_disposition,
                                 bool user_gesture) {
-                               onConsoleMessageEvent(1, "hello from OnOpenURLFromTab", "OnOpenURLFromTab", 3);
+
+                                 if(user_gesture) {
+                                     onConsoleMessageEvent(1, target_url.ToString(), "onOpenURLFromTab", 2);
+                                     onUrlChangedEvent(target_url.ToString());
+                                }
                                     return user_gesture;
                                 }
 
@@ -199,6 +203,7 @@ bool WebviewHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 
     return true;
 }
+
 
 void WebviewHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
