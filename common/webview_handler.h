@@ -12,12 +12,17 @@
 #include <unordered_map>
 
 #include "webview_cookieVisitor.h"
+#include "include/cef_request_handler.h"
+
+
+
 
 class WebviewHandler : public CefClient,
 public CefDisplayHandler,
 public CefLifeSpanHandler,
 public CefLoadHandler,
-public CefRenderHandler{
+public CefRenderHandler,
+public CefRequestHandler{
 public:
     //Paint callback
     std::function<void(const void*, int32_t width, int32_t height)> onPaintCallback;
@@ -45,13 +50,26 @@ public:
     }
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override { return this; }
+    virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
 
 	bool OnProcessMessageReceived(
         CefRefPtr<CefBrowser> browser,
 		CefRefPtr<CefFrame> frame,
 		CefProcessId source_process,
 		CefRefPtr<CefProcessMessage> message) override;
+    
 
+      virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
+                              CefRefPtr<CefFrame> frame,
+                              CefRefPtr<CefRequest> request,
+                              bool user_gesture,
+                              bool is_redirect) override;
+
+  virtual bool OnOpenURLFromTab(CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                const CefString& target_url,
+                                WindowOpenDisposition target_disposition,
+                                bool user_gesture) override;
     
     // CefDisplayHandler methods:
     virtual void OnTitleChange(CefRefPtr<CefBrowser> browser,

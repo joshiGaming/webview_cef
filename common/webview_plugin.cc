@@ -16,8 +16,8 @@ namespace webview_cef {
 	bool isFocused = false;
 	std::function<void(std::string, WValue*)> invokeFunc;
     
-    CefRefPtr<WebviewHandler> handler;
-    CefRefPtr<WebviewApp> app;
+    CefRefPtr<WebviewHandler> handler(new WebviewHandler());
+    CefRefPtr<WebviewApp> app(new WebviewApp(handler));
     CefMainArgs mainArgs;
 
 	static int cursorAction(WValue *args, std::string name) {
@@ -44,22 +44,20 @@ namespace webview_cef {
 		return 1;
 	}
 
-    void initCEFProcesses(CefMainArgs args){
-		mainArgs = args;
-	    initCEFProcesses();
-    }
+void initCEFProcesses(CefMainArgs args){
+	mainArgs = args;
+	CefExecuteProcess(mainArgs, app, nullptr);
+ }
 
-	void initCEFProcesses(){
+void initCEFProcesses(){
 #ifdef OS_MAC
-		CefScopedLibraryLoader loader;
-    	if(!loader.LoadInMain()) {
-        	printf("load cef err");
-    	}
-#endif
-    	handler = new WebviewHandler();
-    	app = new WebviewApp(handler);
-		CefExecuteProcess(mainArgs, app, nullptr);
+	CefScopedLibraryLoader loader;
+	if(!loader.LoadInMain()) {
+		printf("load cef err");
 	}
+#endif
+	CefExecuteProcess(mainArgs, app, nullptr);
+}
 
     void sendKeyEvent(CefKeyEvent& ev)
     {

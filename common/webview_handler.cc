@@ -9,6 +9,7 @@
 #include <iostream>
 #include <chrono>
 
+
 #include "include/base/cef_callback.h"
 #include "include/cef_app.h"
 #include "include/cef_parser.h"
@@ -34,6 +35,7 @@ std::string GetDataURI(const std::string& data, const std::string& mime_type) {
 
 WebviewHandler::WebviewHandler() {
     DCHECK(!g_instance);
+   
     g_instance = this;
 }
 
@@ -94,6 +96,30 @@ void WebviewHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
         onTitleChangedEvent(url);
     }
 }
+
+bool WebviewHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
+                              CefRefPtr<CefFrame> frame,
+                              CefRefPtr<CefRequest> request,
+                              bool user_gesture,
+                              bool is_redirect) {
+
+                            
+                                if(user_gesture) {
+                                     onConsoleMessageEvent(1, request.get()->GetURL().ToString(), "onbeforeBrowser", 2);
+                                     onUrlChangedEvent(request.get()->GetURL().ToString());
+                                }
+                               
+                                return user_gesture;
+                                
+                              }
+bool WebviewHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                const CefString& target_url,
+                                WindowOpenDisposition target_disposition,
+                                bool user_gesture) {
+                               onConsoleMessageEvent(1, "hello from OnOpenURLFromTab", "OnOpenURLFromTab", 3);
+                                    return user_gesture;
+                                }
 
 bool WebviewHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
                             CefCursorHandle cursor,
@@ -169,7 +195,8 @@ bool WebviewHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                   CefBrowserSettings& settings,
                                   CefRefPtr<CefDictionaryValue>& extra_info,
                                   bool* no_javascript_access) {
-    loadUrl(target_url);
+  //  loadUrl(target_url);
+
     return true;
 }
 
@@ -191,7 +218,7 @@ void WebviewHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
     // Display a load error message using a data: URI.
     std::stringstream ss;
     ss << "<html><body bgcolor=\"white\">"
-    "<h2>Failed to load URL "
+    "<h2>you cunt it didnt work, with your shitti url "
     << std::string(failedUrl) << " with error " << std::string(errorText)
     << " (" << errorCode << ").</h2></body></html>";
     
@@ -232,14 +259,11 @@ void WebviewHandler::sendScrollEvent(int x, int y, int deltaX, int deltaY) {
         ev.x = x;
         ev.y = y;
 
-#ifndef __APPLE__
         // The scrolling direction on Windows and Linux is different from MacOS
         deltaY = -deltaY;
         // Flutter scrolls too slowly, it looks more normal by 10x default speed.
-        (*it)->GetHost()->SendMouseWheelEvent(ev, deltaX * 10, deltaY * 10);
-#else
         (*it)->GetHost()->SendMouseWheelEvent(ev, deltaX, deltaY);
-#endif
+
 
 
     }

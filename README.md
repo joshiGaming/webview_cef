@@ -2,6 +2,10 @@
 
 <a href="https://pub.dev/packages/webview_cef"><img src="https://img.shields.io/pub/likes/webview_cef?logo=dart" alt="Pub.dev likes"/></a> <a href="https://pub.dev/packages/webview_cef" alt="Pub.dev popularity"><img src="https://img.shields.io/pub/popularity/webview_cef?logo=dart"/></a> <a href="https://pub.dev/packages/webview_cef"><img src="https://img.shields.io/pub/points/webview_cef?logo=dart" alt="Pub.dev points"/></a> <a href="https://pub.dev/packages/webview_cef"><img src="https://img.shields.io/pub/v/webview_cef.svg" alt="latest version"/></a> <a href="https://pub.dev/packages/webview_cef"><img src="https://img.shields.io/badge/macOS%20%7C%20Windows%20%7C%20Linux-blue?logo=flutter" alt="Platform"/></a>
 
+
+This is a fork of the Flutter Desktop WebView backed by CEF,
+modified to not navigate to different sites by user gesture,
+ensuring a more controlled and secure browsing experience.
 Flutter Desktop WebView backed by CEF (Chromium Embedded Framework).
 This project is under heavy development, and the APIs are not stable yet.
 

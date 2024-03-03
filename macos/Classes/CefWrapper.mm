@@ -4,6 +4,16 @@
 //
 //  Created by Hao Linwei on 2022/8/18.
 //
+//  Pixie documentation
+/*
+
+This code is like the others for windows and linux, a converting wrapper, that converts
+Datatypes, keyboard inputs and PixelBuffering from the native code find in /common/ to NSTypes and callback
+
+[TODO]
+implement more docs
+*/
+
 
 #import "CefWrapper.h"
 #import <Foundation/Foundation.h>

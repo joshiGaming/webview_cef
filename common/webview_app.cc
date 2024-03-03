@@ -12,6 +12,7 @@
 #include "include/views/cef_window.h"
 #include "include/wrapper/cef_helpers.h"
 
+
 namespace {
 
 // When using the Views framework this object provides the delegate
