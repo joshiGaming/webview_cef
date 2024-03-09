@@ -68,5 +68,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-/macos/third/cef/Chromium Embedded Framework.framework
-/macos/third/cef/libcef_dll_wrapper.a
+macos/third/cef/
+!macos/third/cef/include
+

@@ -170,7 +170,7 @@ struct is_trivially_copyable {
   static constexpr bool value = __is_trivially_copyable(T);
 #else
   static constexpr bool value =
-      __has_trivial_copy(T) && __has_trivial_destructor(T);
+      __is_trivially_copyable(T) && __is_trivially_destructible(T);
 #endif
 };
 #else

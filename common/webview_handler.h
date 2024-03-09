@@ -22,7 +22,9 @@ public CefDisplayHandler,
 public CefLifeSpanHandler,
 public CefLoadHandler,
 public CefRenderHandler,
-public CefRequestHandler{
+public CefRequestHandler,
+public CefResourceRequestHandler
+{
 public:
     //Paint callback
     std::function<void(const void*, int32_t width, int32_t height)> onPaintCallback;
@@ -51,6 +53,24 @@ public:
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override { return this; }
     virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
+
+
+
+    CefRefPtr<CefResourceRequestHandler> GetResourceRequestHandler(      
+    CefRefPtr<CefBrowser> browser,
+      CefRefPtr<CefFrame> frame,
+      CefRefPtr<CefRequest> request,
+      bool is_navigation,
+      bool is_download,
+      const CefString& request_initiator,
+      bool& disable_default_handling) override {
+    return this;
+  }
+
+ReturnValue OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
+                                           CefRefPtr<CefFrame> frame,
+                                           CefRefPtr<CefRequest> request,
+                                           CefRefPtr<CefCallback> callback) override;
 
 	bool OnProcessMessageReceived(
         CefRefPtr<CefBrowser> browser,

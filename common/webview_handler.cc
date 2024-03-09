@@ -9,7 +9,6 @@
 #include <iostream>
 #include <chrono>
 
-
 #include "include/base/cef_callback.h"
 #include "include/cef_app.h"
 #include "include/cef_parser.h"
@@ -20,59 +19,68 @@
 
 #include "webview_js_handler.h"
 
-namespace {
+namespace
+{
 
-WebviewHandler* g_instance = nullptr;
+    WebviewHandler *g_instance = nullptr;
 
-// Returns a data: URI with the specified contents.
-std::string GetDataURI(const std::string& data, const std::string& mime_type) {
-    return "data:" + mime_type + ";base64," +
-    CefURIEncode(CefBase64Encode(data.data(), data.size()), false)
-        .ToString();
-}
+    // Returns a data: URI with the specified contents.
+    std::string GetDataURI(const std::string &data, const std::string &mime_type)
+    {
+        return "data:" + mime_type + ";base64," +
+               CefURIEncode(CefBase64Encode(data.data(), data.size()), false)
+                   .ToString();
+    }
 
-}  // namespace
+} // namespace
 
-WebviewHandler::WebviewHandler() {
+WebviewHandler::WebviewHandler()
+{
     DCHECK(!g_instance);
-   
+
     g_instance = this;
 }
 
-WebviewHandler::~WebviewHandler() {
+WebviewHandler::~WebviewHandler()
+{
     g_instance = nullptr;
 }
 
 // static
-WebviewHandler* WebviewHandler::GetInstance() {
+WebviewHandler *WebviewHandler::GetInstance()
+{
     return g_instance;
 }
 
 bool WebviewHandler::OnProcessMessageReceived(
     CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
-     CefProcessId source_process, CefRefPtr<CefProcessMessage> message)
+    CefProcessId source_process, CefRefPtr<CefProcessMessage> message)
 {
-	std::string message_name = message->GetName();
+    std::string message_name = message->GetName();
 
-    if(message_name == kJSCallCppFunctionMessage)
+    if (message_name == kJSCallCppFunctionMessage)
     {
         CefString fun_name = message->GetArgumentList()->GetString(0);
-		CefString param = message->GetArgumentList()->GetString(1);
-		int js_callback_id = message->GetArgumentList()->GetInt(2);
+        CefString param = message->GetArgumentList()->GetString(1);
+        int js_callback_id = message->GetArgumentList()->GetInt(2);
 
-        if (fun_name.empty() || !(browser.get())) {
-		    return false;
-	    }
+        if (fun_name.empty() || !(browser.get()))
+        {
+            return false;
+        }
 
         onJavaScriptChannelMessage(
-            fun_name,param,std::to_string(js_callback_id),std::to_string(frame->GetIdentifier()));
+            fun_name, param, std::to_string(js_callback_id), std::to_string(frame->GetIdentifier()));
     }
-    else if(message_name == kEvaluateCallbackMessage){
+    else if (message_name == kEvaluateCallbackMessage)
+    {
         CefString callbackId = message->GetArgumentList()->GetString(0);
         CefString param = message->GetArgumentList()->GetString(1);
-        if(!callbackId.empty() && !param.empty()){
+        if (!callbackId.empty() && !param.empty())
+        {
             auto it = js_callbacks_.find(callbackId.ToString());
-            if(it != js_callbacks_.end()){
+            if (it != js_callbacks_.end())
+            {
                 it->second(param.ToString());
                 js_callbacks_.erase(it);
             }
@@ -82,62 +90,93 @@ bool WebviewHandler::OnProcessMessageReceived(
 }
 
 void WebviewHandler::OnTitleChange(CefRefPtr<CefBrowser> browser,
-                                  const CefString& title) {
-    //todo: title change
-    if(onTitleChangedEvent) {
+                                   const CefString &title)
+{
+    // todo: title change
+    if (onTitleChangedEvent)
+    {
         onTitleChangedEvent(title);
     }
 }
 
 void WebviewHandler::OnAddressChange(CefRefPtr<CefBrowser> browser,
-                             CefRefPtr<CefFrame> frame,
-                     const CefString& url) {
-    if(onUrlChangedEvent) {
+                                     CefRefPtr<CefFrame> frame,
+                                     const CefString &url)
+{
+    if (onUrlChangedEvent)
+    {
         onTitleChangedEvent(url);
     }
 }
 
+
+
+    
+
+
+
+
+
+CefResourceRequestHandler::ReturnValue WebviewHandler::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
+                                           CefRefPtr<CefFrame> frame,
+                                           CefRefPtr<CefRequest> request,
+                                           CefRefPtr<CefCallback> callback) {
+     
+
+        
+
+        // Allow the request to continue
+        return RV_CONTINUE;
+    }
+    
+
 bool WebviewHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
-                              CefRefPtr<CefFrame> frame,
-                              CefRefPtr<CefRequest> request,
-                              bool user_gesture,
-                              bool is_redirect) {
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    bool user_gesture,
+                                    bool is_redirect)
+{
 
-                            
-                                if(user_gesture) {
-                                     onConsoleMessageEvent(1, request.get()->GetURL().ToString(), "onbeforeBrowser", 2);
-                                     onUrlChangedEvent(request.get()->GetURL().ToString());
-                                }
-                               
-                                return user_gesture;
-                                
-                              }
+    if (user_gesture)
+    {
+        onConsoleMessageEvent(1, request.get()->GetURL().ToString(), "onbeforeBrowser", 2);
+        onUrlChangedEvent(request.get()->GetURL().ToString());
+    }
+
+    return user_gesture;
+}
 bool WebviewHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser,
-                                CefRefPtr<CefFrame> frame,
-                                const CefString& target_url,
-                                WindowOpenDisposition target_disposition,
-                                bool user_gesture) {
+                                      CefRefPtr<CefFrame> frame,
+                                      const CefString &target_url,
+                                      WindowOpenDisposition target_disposition,
+                                      bool user_gesture)
+{
 
-                                 if(user_gesture) {
-                                     onConsoleMessageEvent(1, target_url.ToString(), "onOpenURLFromTab", 2);
-                                     onUrlChangedEvent(target_url.ToString());
-                                }
-                                    return user_gesture;
-                                }
+    if (user_gesture)
+    {
+        onConsoleMessageEvent(1, target_url.ToString(), "onOpenURLFromTab", 2);
+        onUrlChangedEvent(target_url.ToString());
+    }
+    return user_gesture;
+}
 
 bool WebviewHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
-                            CefCursorHandle cursor,
-                            cef_cursor_type_t type,
-                            const CefCursorInfo& custom_cursor_info){
-    if(onCursorChangedEvent) {
+                                    CefCursorHandle cursor,
+                                    cef_cursor_type_t type,
+                                    const CefCursorInfo &custom_cursor_info)
+{
+    if (onCursorChangedEvent)
+    {
         onCursorChangedEvent(type);
         return true;
     }
     return false;
 }
 
-bool WebviewHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text) {
-    if(onTooltipEvent) {
+bool WebviewHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString &text)
+{
+    if (onTooltipEvent)
+    {
         onTooltipEvent(text);
         return true;
     }
@@ -146,120 +185,139 @@ bool WebviewHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text) {
 
 bool WebviewHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser,
                                       cef_log_severity_t level,
-                                      const CefString& message,
-                                      const CefString& source,
-                                      int line){
-    if(onConsoleMessageEvent){
+                                      const CefString &message,
+                                      const CefString &source,
+                                      int line)
+{
+    if (onConsoleMessageEvent)
+    {
         onConsoleMessageEvent(level, message, source, line);
     }
     return false;
 }
 
-void WebviewHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser) {
+void WebviewHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+{
     CEF_REQUIRE_UI_THREAD();
-    
+
     // Add to the list of existing browsers.
     browser_list_.push_back(browser);
 }
 
-bool WebviewHandler::DoClose(CefRefPtr<CefBrowser> browser) {
-    CEF_REQUIRE_UI_THREAD();    
+bool WebviewHandler::DoClose(CefRefPtr<CefBrowser> browser)
+{
+    CEF_REQUIRE_UI_THREAD();
     // Allow the close. For windowed browsers this will result in the OS close
     // event being sent.
     return false;
 }
 
-void WebviewHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
+void WebviewHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+{
     CEF_REQUIRE_UI_THREAD();
-    
+
     // Remove from the list of existing browsers.
     BrowserList::iterator bit = browser_list_.begin();
-    for (; bit != browser_list_.end(); ++bit) {
-        if ((*bit)->IsSame(browser)) {
+    for (; bit != browser_list_.end(); ++bit)
+    {
+        if ((*bit)->IsSame(browser))
+        {
             browser_list_.erase(bit);
             break;
         }
     }
-    
-    if (browser_list_.empty()) {
+
+    if (browser_list_.empty())
+    {
         // All browser windows have closed. Quit the application message loop.
         CefQuitMessageLoop();
     }
 }
 
 bool WebviewHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
-                                  CefRefPtr<CefFrame> frame,
-                                  const CefString& target_url,
-                                  const CefString& target_frame_name,
-                                  WindowOpenDisposition target_disposition,
-                                  bool user_gesture,
-                                  const CefPopupFeatures& popupFeatures,
-                                  CefWindowInfo& windowInfo,
-                                  CefRefPtr<CefClient>& client,
-                                  CefBrowserSettings& settings,
-                                  CefRefPtr<CefDictionaryValue>& extra_info,
-                                  bool* no_javascript_access) {
-  //  loadUrl(target_url);
+                                   CefRefPtr<CefFrame> frame,
+                                   const CefString &target_url,
+                                   const CefString &target_frame_name,
+                                   WindowOpenDisposition target_disposition,
+                                   bool user_gesture,
+                                   const CefPopupFeatures &popupFeatures,
+                                   CefWindowInfo &windowInfo,
+                                   CefRefPtr<CefClient> &client,
+                                   CefBrowserSettings &settings,
+                                   CefRefPtr<CefDictionaryValue> &extra_info,
+                                   bool *no_javascript_access)
+{
+     loadUrl(target_url);
 
     return true;
 }
 
-
 void WebviewHandler::OnLoadError(CefRefPtr<CefBrowser> browser,
-                                CefRefPtr<CefFrame> frame,
-                                ErrorCode errorCode,
-                                const CefString& errorText,
-                                const CefString& failedUrl) {
+                                 CefRefPtr<CefFrame> frame,
+                                 ErrorCode errorCode,
+                                 const CefString &errorText,
+                                 const CefString &failedUrl)
+{
     CEF_REQUIRE_UI_THREAD();
-    
+
+
+     onConsoleMessageEvent(1, failedUrl.ToString(), errorText.ToString(), 1);
     // Allow Chrome to show the error page.
     if (IsChromeRuntimeEnabled())
         return;
-    
+
     // Don't display an error for downloaded files.
     if (errorCode == ERR_ABORTED)
         return;
-    
+
     // Display a load error message using a data: URI.
     std::stringstream ss;
     ss << "<html><body bgcolor=\"white\">"
-    "<h2>you cunt it didnt work, with your shitti url "
-    << std::string(failedUrl) << " with error " << std::string(errorText)
-    << " (" << errorCode << ").</h2></body></html>";
-    
+          "<h2>you cunt it didnt work, with your shitti url "
+       << std::string(failedUrl) << " with error " << std::string(errorText)
+       << " (" << errorCode << ").</h2></body></html>";
+
     frame->LoadURL(GetDataURI(ss.str(), "text/html"));
+
+  
 }
 
-void WebviewHandler::CloseAllBrowsers(bool force_close) {
-    if (!CefCurrentlyOn(TID_UI)) {
+void WebviewHandler::CloseAllBrowsers(bool force_close)
+{
+    if (!CefCurrentlyOn(TID_UI))
+    {
         // Execute on the UI thread.
         //    CefPostTask(TID_UI, base::BindOnce(&SimpleHandler::CloseAllBrowsers, this,
         //                                       force_close));
         return;
     }
-    
+
     if (browser_list_.empty())
         return;
-    
+
     BrowserList::const_iterator it = browser_list_.begin();
     for (; it != browser_list_.end(); ++it)
         (*it)->GetHost()->CloseBrowser(force_close);
 }
 
 // static
-bool WebviewHandler::IsChromeRuntimeEnabled() {
+bool WebviewHandler::IsChromeRuntimeEnabled()
+{
     static int value = -1;
-    if (value == -1) {
+    if (value == -1)
+    {
         CefRefPtr<CefCommandLine> command_line =
-        CefCommandLine::GetGlobalCommandLine();
+            CefCommandLine::GetGlobalCommandLine();
         value = command_line->HasSwitch("enable-chrome-runtime") ? 1 : 0;
     }
     return value == 1;
 }
 
-void WebviewHandler::sendScrollEvent(int x, int y, int deltaX, int deltaY) {
+void WebviewHandler::sendScrollEvent(int x, int y, int deltaX, int deltaY)
+{
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         CefMouseEvent ev;
         ev.x = x;
         ev.y = y;
@@ -268,9 +326,6 @@ void WebviewHandler::sendScrollEvent(int x, int y, int deltaX, int deltaY) {
         deltaY = -deltaY;
         // Flutter scrolls too slowly, it looks more normal by 10x default speed.
         (*it)->GetHost()->SendMouseWheelEvent(ev, deltaX, deltaY);
-
-
-
     }
 }
 
@@ -280,7 +335,8 @@ void WebviewHandler::changeSize(float a_dpi, int w, int h)
     this->width = w;
     this->height = h;
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         (*it)->GetHost()->WasResized();
     }
 }
@@ -288,46 +344,57 @@ void WebviewHandler::changeSize(float a_dpi, int w, int h)
 void WebviewHandler::cursorClick(int x, int y, bool up)
 {
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         CefMouseEvent ev;
         ev.x = x;
         ev.y = y;
         ev.modifiers = EVENTFLAG_LEFT_MOUSE_BUTTON;
-        if(up && is_dragging) {
+        if (up && is_dragging)
+        {
             (*it)->GetHost()->DragTargetDrop(ev);
             (*it)->GetHost()->DragSourceSystemDragEnded();
             is_dragging = false;
-        } else {
+        }
+        else
+        {
             (*it)->GetHost()->SendMouseClickEvent(ev, CefBrowserHost::MouseButtonType::MBT_LEFT, up, 1);
         }
     }
 }
 
-void WebviewHandler::cursorMove(int x , int y, bool dragging)
+void WebviewHandler::cursorMove(int x, int y, bool dragging)
 {
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         CefMouseEvent ev;
         ev.x = x;
         ev.y = y;
-        if(dragging) {
+        if (dragging)
+        {
             ev.modifiers = EVENTFLAG_LEFT_MOUSE_BUTTON;
         }
-        if(is_dragging && dragging) {
+        if (is_dragging && dragging)
+        {
             (*it)->GetHost()->DragTargetDragOver(ev, DRAG_OPERATION_EVERY);
-        } else {
+        }
+        else
+        {
             (*it)->GetHost()->SendMouseMoveEvent(ev, false);
         }
     }
 }
 
 bool WebviewHandler::StartDragging(CefRefPtr<CefBrowser> browser,
-                                  CefRefPtr<CefDragData> drag_data,
-                                  DragOperationsMask allowed_ops,
-                                  int x,
-                                  int y){
+                                   CefRefPtr<CefDragData> drag_data,
+                                   DragOperationsMask allowed_ops,
+                                   int x,
+                                   int y)
+{
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         CefMouseEvent ev;
         ev.x = x;
         ev.y = y;
@@ -338,10 +405,11 @@ bool WebviewHandler::StartDragging(CefRefPtr<CefBrowser> browser,
     return true;
 }
 
-void WebviewHandler::sendKeyEvent(CefKeyEvent& ev)
+void WebviewHandler::sendKeyEvent(CefKeyEvent &ev)
 {
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         (*it)->GetHost()->SendKeyEvent(ev);
     }
 }
@@ -349,35 +417,44 @@ void WebviewHandler::sendKeyEvent(CefKeyEvent& ev)
 void WebviewHandler::loadUrl(std::string url)
 {
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         (*it)->GetMainFrame()->LoadURL(url);
     }
 }
 
-void WebviewHandler::goForward() {
+void WebviewHandler::goForward()
+{
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         (*it)->GetMainFrame()->GetBrowser()->GoForward();
     }
 }
 
-void WebviewHandler::goBack() {
+void WebviewHandler::goBack()
+{
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         (*it)->GetMainFrame()->GetBrowser()->GoBack();
     }
 }
 
-void WebviewHandler::reload() {
+void WebviewHandler::reload()
+{
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         (*it)->GetMainFrame()->GetBrowser()->Reload();
     }
 }
 
-void WebviewHandler::openDevTools() {
+void WebviewHandler::openDevTools()
+{
     BrowserList::const_iterator it = browser_list_.begin();
-    if (it != browser_list_.end()) {
+    if (it != browser_list_.end())
+    {
         CefWindowInfo windowInfo;
 #ifdef _WIN32
         windowInfo.SetAsPopup(nullptr, "DevTools");
@@ -386,40 +463,45 @@ void WebviewHandler::openDevTools() {
     }
 }
 
-void WebviewHandler::setCookie(const std::string& domain, const std::string& key, const std::string& value){
+void WebviewHandler::setCookie(const std::string &domain, const std::string &key, const std::string &value)
+{
     CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager(nullptr);
-    if(manager){
+    if (manager)
+    {
         CefCookie cookie;
-		CefString(&cookie.path).FromASCII("/");
-		CefString(&cookie.name).FromString(key.c_str());
-		CefString(&cookie.value).FromString(value.c_str());
+        CefString(&cookie.path).FromASCII("/");
+        CefString(&cookie.name).FromString(key.c_str());
+        CefString(&cookie.value).FromString(value.c_str());
 
-		if (!domain.empty()) {
-			CefString(&cookie.domain).FromString(domain.c_str());
-		}
+        if (!domain.empty())
+        {
+            CefString(&cookie.domain).FromString(domain.c_str());
+        }
 
-		cookie.httponly = true;
-		cookie.secure = false;
-		std::string httpDomain = "https://" + domain + "/cookiestorage";
-		manager->SetCookie(httpDomain, cookie, nullptr);
+        cookie.httponly = true;
+        cookie.secure = false;
+        std::string httpDomain = "https://" + domain + "/cookiestorage";
+        manager->SetCookie(httpDomain, cookie, nullptr);
     }
 }
 
-void WebviewHandler::deleteCookie(const std::string& domain, const std::string& key)
+void WebviewHandler::deleteCookie(const std::string &domain, const std::string &key)
 {
     CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager(nullptr);
-    if (manager) {
+    if (manager)
+    {
         std::string httpDomain = "https://" + domain + "/cookiestorage";
         manager->DeleteCookies(httpDomain, key, nullptr);
     }
 }
 
-void WebviewHandler::visitAllCookies(std::function<void(std::map<std::string, std::map<std::string, std::string>>)> callback){
+void WebviewHandler::visitAllCookies(std::function<void(std::map<std::string, std::map<std::string, std::string>>)> callback)
+{
     CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager(nullptr);
     if (!manager)
-	{
-		return;
-	}
+    {
+        return;
+    }
 
     CefRefPtr<WebviewCookieVisitor> cookieVisitor = new WebviewCookieVisitor();
     cookieVisitor->setOnVisitComplete(callback);
@@ -427,12 +509,13 @@ void WebviewHandler::visitAllCookies(std::function<void(std::map<std::string, st
     manager->VisitAllCookies(cookieVisitor);
 }
 
-void WebviewHandler::visitUrlCookies(const std::string& domain, const bool& isHttpOnly, std::function<void(std::map<std::string, std::map<std::string, std::string>>)> callback){
+void WebviewHandler::visitUrlCookies(const std::string &domain, const bool &isHttpOnly, std::function<void(std::map<std::string, std::map<std::string, std::string>>)> callback)
+{
     CefRefPtr<CefCookieManager> manager = CefCookieManager::GetGlobalManager(nullptr);
     if (!manager)
-	{
-		return;
-	}
+    {
+        return;
+    }
 
     CefRefPtr<WebviewCookieVisitor> cookieVisitor = new WebviewCookieVisitor();
     cookieVisitor->setOnVisitComplete(callback);
@@ -445,7 +528,7 @@ void WebviewHandler::visitUrlCookies(const std::string& domain, const bool& isHt
 void WebviewHandler::setJavaScriptChannels(const std::vector<std::string> channels)
 {
     std::string extensionCode = "";
-    for(auto& channel : channels)
+    for (auto &channel : channels)
     {
         extensionCode += channel;
         extensionCode += " = (e,r) => {external.JavaScriptChannel('";
@@ -463,7 +546,8 @@ void WebviewHandler::sendJavaScriptChannelCallBack(const bool error, const std::
     args->SetBool(1, error);
     args->SetString(2, result);
     BrowserList::iterator bit = browser_list_.begin();
-    for (; bit != browser_list_.end(); ++bit) {
+    for (; bit != browser_list_.end(); ++bit)
+    {
         CefRefPtr<CefFrame> frame = (*bit)->GetMainFrame();
         if (frame->GetIdentifier() == atoll(frameId.c_str()))
         {
@@ -475,21 +559,25 @@ void WebviewHandler::sendJavaScriptChannelCallBack(const bool error, const std::
 static std::string GetCallbackId()
 {
     auto time = std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
-	time_t timestamp = time.time_since_epoch().count();
+    time_t timestamp = time.time_since_epoch().count();
     return std::to_string(timestamp);
-} 
+}
 
 void WebviewHandler::executeJavaScript(const std::string code, std::function<void(std::string)> callback)
 {
-    if(!code.empty())
+    if (!code.empty())
     {
         BrowserList::iterator bit = browser_list_.begin();
-        for (; bit != browser_list_.end(); ++bit) {
-            if ((*bit).get()) {
+        for (; bit != browser_list_.end(); ++bit)
+        {
+            if ((*bit).get())
+            {
                 CefRefPtr<CefFrame> frame = (*bit)->GetMainFrame();
-                if (frame) {
+                if (frame)
+                {
                     std::string finalCode = code;
-                    if(callback != nullptr){
+                    if (callback != nullptr)
+                    {
                         std::string callbackId = GetCallbackId();
                         finalCode = "external.EvaluateCallback('";
                         finalCode += callbackId;
@@ -498,38 +586,47 @@ void WebviewHandler::executeJavaScript(const std::string code, std::function<voi
                         finalCode += "})());";
                         js_callbacks_[callbackId] = callback;
                     }
-			        frame->ExecuteJavaScript(finalCode, frame->GetURL(), 0);
-		        }
+                    frame->ExecuteJavaScript(finalCode, frame->GetURL(), 0);
+                }
             }
         }
     }
 }
 
-void WebviewHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect) {
+void WebviewHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect)
+{
     CEF_REQUIRE_UI_THREAD();
-    
+
     rect.x = rect.y = 0;
-    
-    if (width < 1) {
+
+    if (width < 1)
+    {
         rect.width = 1;
-    } else {
+    }
+    else
+    {
         rect.width = width;
     }
-    
-    if (height < 1) {
+
+    if (height < 1)
+    {
         rect.height = 1;
-    } else {
+    }
+    else
+    {
         rect.height = height;
     }
 }
 
-bool WebviewHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo& screen_info) {
-    //todo: hi dpi support
-    screen_info.device_scale_factor  = this->dpi;
+bool WebviewHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo &screen_info)
+{
+    // todo: hi dpi support
+    screen_info.device_scale_factor = this->dpi;
     return false;
 }
 
 void WebviewHandler::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
-                            const CefRenderHandler::RectList &dirtyRects, const void *buffer, int w, int h) {
+                             const CefRenderHandler::RectList &dirtyRects, const void *buffer, int w, int h)
+{
     onPaintCallback(buffer, w, h);
 }

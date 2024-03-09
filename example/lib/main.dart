@@ -28,11 +28,12 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   };
 
   Future<String> getbody() async {
-    final res = await http.get(Uri.parse('$baseUrl/v1/mods/396246/description'),
+    final res = await http.get(Uri.parse('$baseUrl/v1/mods/643605/description'),
         headers: userHeader);
     final hit = jsonDecode(utf8.decode(res.bodyBytes));
     return hit["data"];
   }
+  bool isopened = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +42,9 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         theme: ThemeData(useMaterial3: true),
         home: Scaffold(
             floatingActionButton: FloatingActionButton(onPressed: (() async {
-              setState(() {});
+              setState(() {
+                isopened = !isopened;
+              });
             })),
             body: Container(
                 color: Color.fromARGB(255, 30, 30, 30),
@@ -53,7 +56,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                             color: Color.fromARGB(78, 137, 137, 137)),
                         color: Color.fromARGB(255, 30, 30, 30),
                         borderRadius: BorderRadius.circular(18)),
-                    child: FutureBuilder(
+                    child: isopened ? FutureBuilder(
                         future: getbody(),
                         builder: (context, snapshot) => snapshot.hasData
                             ? WebviewWidget(
@@ -61,6 +64,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                 cacheFilePath: File(
                                     "/Users/joshig/Documents/GitHub/webview_cef/example/lib/index.html"),
                               )
-                            : Container())))));
+                            : Container()): Container()))));
   }
 }

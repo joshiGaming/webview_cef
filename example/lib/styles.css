@@ -11,7 +11,10 @@ html *
    'Helvetica Neue', sans-serif; 
    background-color: transparent;
 }
-
+* {
+  max-width:100% !important;
+  height:auto !important;
+}
 
 *::-webkit-scrollbar {
    width: 14px;
