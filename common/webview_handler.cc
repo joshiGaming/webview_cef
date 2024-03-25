@@ -148,7 +148,7 @@ bool WebviewHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
 bool WebviewHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser,
                                       CefRefPtr<CefFrame> frame,
                                       const CefString &target_url,
-                                      WindowOpenDisposition target_disposition,
+                                      CefRequestHandler::WindowOpenDisposition target_disposition,
                                       bool user_gesture)
 {
 
@@ -238,7 +238,7 @@ bool WebviewHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                    CefRefPtr<CefFrame> frame,
                                    const CefString &target_url,
                                    const CefString &target_frame_name,
-                                   WindowOpenDisposition target_disposition,
+                                   CefLifeSpanHandler::WindowOpenDisposition target_disposition,
                                    bool user_gesture,
                                    const CefPopupFeatures &popupFeatures,
                                    CefWindowInfo &windowInfo,
