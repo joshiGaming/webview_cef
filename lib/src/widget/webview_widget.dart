@@ -31,15 +31,15 @@ class _WebviewWidgetState extends State<WebviewWidget> {
     Future.delayed(Duration(milliseconds: 50)).then((value) => _controller.loadUrl(
         "file://${widget.cacheFilePath.path}"));
 
-    // dom.Document docs = html.parse(await 
-    //         widget.cacheFilePath
-    //     .readAsString());
+    dom.Document docs = html.parse(await 
+            widget.cacheFilePath
+        .readAsString());
 
 
-    // docs.body!.innerHtml = md.markdownToHtml(widget.body);
+    docs.body!.innerHtml = md.markdownToHtml(widget.body);
 
-    // widget.cacheFilePath
-    //     .writeAsStringSync(docs.outerHtml);
+    widget.cacheFilePath
+        .writeAsStringSync(docs.outerHtml);
     //onUrlchanged is called when trying to nevigate to difrent site by a user gesture
     _controller.setWebviewListener(WebviewEventsListener(
         onUrlChanged: (url) {
@@ -62,6 +62,7 @@ class _WebviewWidgetState extends State<WebviewWidget> {
         child: FutureBuilder(
             future: initPlatformState(),
             builder: ((context, snapshot) {
+           //   print("inner builder! : " + _controller.value.toString());
               return Stack(
                 children: [
                   AnimatedOpacity(

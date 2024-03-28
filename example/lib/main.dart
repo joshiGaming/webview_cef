@@ -28,15 +28,18 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   };
 
   Future<String> getbody() async {
+    print("body!");
     final res = await http.get(Uri.parse('$baseUrl/v1/mods/643605/description'),
         headers: userHeader);
     final hit = jsonDecode(utf8.decode(res.bodyBytes));
     return hit["data"];
   }
+
   bool isopened = false;
 
   @override
   Widget build(BuildContext context) {
+    print("build!");
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(useMaterial3: true),
@@ -56,14 +59,22 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                             color: Color.fromARGB(78, 137, 137, 137)),
                         color: Color.fromARGB(255, 30, 30, 30),
                         borderRadius: BorderRadius.circular(18)),
-                    child: isopened ? FutureBuilder(
-                        future: getbody(),
-                        builder: (context, snapshot) => snapshot.hasData
-                            ? WebviewWidget(
-                                body: snapshot.data as String,
-                                cacheFilePath: File(
-                                    "C:\\Users\\joshi\\Documents\\GitHub\\webview_cef\\example\\lib\\index.html"),
-                              )
-                            : Container()): Container()))));
+                    child: isopened
+                        ? FutureBuilder(
+                            future: getbody(),
+                            builder: (context, snapshot) {
+                              print("future builder!");
+                              if (snapshot.hasData) {
+                                print("ja");
+                                return WebviewWidget(
+                                  body: snapshot.data as String,
+                                  cacheFilePath: File(
+                                      "C:\\Users\\joshi\\Documents\\GitHub\\webview_cef\\example\\lib\\index.html"),
+                                );
+                              } else {
+                                return Container();
+                              }
+                            })
+                        : Container()))));
   }
 }
